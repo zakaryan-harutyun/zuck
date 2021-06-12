@@ -13,7 +13,7 @@ class CreateFormdataTable extends Migration
      */
     public function up()
     {
-        Schema::create('formdata', function (Blueprint $table) {
+        Schema::create('formdatas', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('email');
             $table->timestamps();
