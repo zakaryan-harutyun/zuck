@@ -18,6 +18,10 @@ $router->group(['prefix'=>'api/v1'], function() use($router){
     $router->get('/', 'ApiController@index');
     $router->get('/test-email', 'ApiController@email');
     $router->post('/store', 'ApiController@store');
+    $router->get('/clear-cache', function() {
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        return response()->json('done');
+    });
 });
 
 
