@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 
 
 use App\Brief;
-use http\Env\Request;
-use Illuminate\Support\Facades\App;
+use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ApiController extends Controller
 {
@@ -35,37 +36,93 @@ class ApiController extends Controller
 
     public function store(Request $request)
     {
-        $validator = $this->validate($request, [
-        /*    'name' => 'required',
-            'email' => 'required|email|unique:users'*/
+
+        ini_set('max_execution_time', 300);
+
+      try{
+
+          /*  $validator = $this->validate($request, [
+            '__type__' => 'required',
+            'email' => 'required|email|unique:users'
         ]);
 
         if ($validator->fails()) {
             return response()->json(['status' => false],'500');
-        }
+        }*/
 
-        $data = serialize($request->data);
+          $data = $request->all();
 
-        $brief = Brief::create([
-            'data' => $data
-        ]);
+          $type = $data['__type__'];
+          $email = $data['E-mail *']['value'];
+          $files = $data['Additional Information']['value']['files'];
 
-        $pdf_data = ['a','b','c','d','e','f'];
-        $pdf = PDF::loadView('pdf',['data' => $pdf_data]);
-        $output = $pdf->output();
-        $pdf_path = 'pdf/'.time().'.pdf';
-        $brief->pdf = $pdf_path;
-        $brief->save();
-        file_put_contents($pdf_path, $output);
+          $check_unique = Brief::where('email',$email)->where('type', $type)->first();
 
-        $email_data = array('name'=>'Arunumar');
-        Mail::send('mail', $email_data, function($message) use ($pdf_path){
-            $message->to('easyselva@gmail.com', 'Arunkumar')->subject('Test Mail from Selva');
-            $message->from('selva@snamservices.com','Selvakumar');
-            $message->attach($pdf_path);
-        });
+          if($check_unique){
+              return response()->json(['result' => false, 'message' => 'This email with brief type already used in the system']);
+          }
 
-        return response()->json(['status' => true],'200');
+          $db_files = [];
+          $db_data = [];
+
+          $brief = New Brief();
+          $brief->brief_name = $type;
+          $brief->email = $email;
+
+
+          if(count($files) > 0){
+              foreach ($files as $file){
+                  $image_64 = $file; //your base64 encoded data
+
+                  $extension = explode('/', explode(':', substr($image_64, 0, strpos($image_64, ';')))[1])[1];
+                  $replace = substr($image_64, 0, strpos($image_64, ',')+1);
+                  $image = str_replace($replace, '', $image_64);
+                  $image = str_replace(' ', '+', $image);
+                  $imageName = Str::random(10).'.'.$extension;
+                  file_put_contents('files/'.$imageName, base64_decode($image));
+                  array_push($db_files, $imageName);
+              }
+              $brief->files = serialize($db_files);
+          }
+
+
+          foreach ($data as $key => $item){
+              if(isset($data[$key]['value']) && $data[$key]['name'] != "Additional Information"){
+                  $name = $data[$key]['name'];
+                  $value = '';
+                  if(gettype($data[$key]['value']) == "array"){
+                      foreach ($data[$key]['value'] as $key => $val){
+                          $value .= ', '. $key;
+                      }
+                  }else{
+                      $value = $data[$key]['value'];
+                  }
+
+                  array_push($db_data, ['key' => $name, 'value' => $value]);
+              }
+          }
+          $brief->data = serialize($db_data);
+
+
+          $pdf = PDF::loadView('pdf',['data' => $db_data]);
+
+          $output = $pdf->stream();
+          $pdf_path = 'pdf/'.time().'.pdf';
+          $brief->pdf = $pdf_path;
+          $brief->save();
+          file_put_contents($pdf_path, $output);
+
+          $email_data = [];
+          Mail::send('mail', $email_data, function($message) use ($pdf_path, $email,$type){
+              $message->to($email)->subject($type);
+              $message->from('zuckagency@gmail.com');
+              $message->attach($pdf_path);
+          });
+      }catch (\Exception $exception){
+          return response()->json(['result' => false],'500');
+      }
+
+        return response()->json(['result' => true],'200');
     }
 
     public function pdf(){
@@ -84,12 +141,5 @@ class ApiController extends Controller
         return $pdf->stream();
     }
 
-    public function mail(){
-        $data = array('name'=>'Arunumar');
-        Mail::send('mail', $data, function($message) {
-        $message->to('easyselva@gmail.com', 'Arunkumar')->subject('Test Mail from Selva');
-        $message->from('selva@snamservices.com','Selvakumar');
-        });
-    }
 
 }

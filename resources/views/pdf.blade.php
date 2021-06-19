@@ -1,9 +1,11 @@
 
 <style>
+    .divTable{
+         background: #feebe1;
+     }
     * {
         font-size: x-small;
     }
-
     th {
         background-color: #f7f7f7;
         border-color: #959594;
@@ -16,6 +18,7 @@
         border-color: #959594;
         border-style: solid;
         border-width: 1px;
+        padding: 5px;
     }
 
     table {
@@ -29,34 +32,26 @@
         border: 0px !important;
     }
 </style>
-
+<body>
 <div class="divTable">
     <div class="divTableBody">
         <div class="divTableRow">
 
             <div class="divTableCell">
                 <table class="bordered width-100pc" width="100%">
-                    <tr>
-                        <th colspan="2">FECHA Y HORA DE EVIDENCIA</th>
-                    </tr>
-                    <tr>
-                        <td class="text-center" width="50%">
-                            DÍA - MES - AÑO
-                        </td>
-                        <td class="text-center" width="50%">
-                            HORA: MINUTOS
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="text-center">
-                            111
-                        </td>
-                        <td class="text-center">
-                           222
-                        </td>
-                    </tr>
+                    @foreach($data as $key => $item)
+                        <tr>
+                            <td class="text-center" width="50%">
+                                {{$item['key'] ? $item['key'] : ''}}
+                            </td>
+                            <td class="text-center" width="50%">
+                                {{$item['value'] ? $item['value'] : ''}}
+                            </td>
+                        </tr>
+                    @endforeach
                 </table>
             </div>
         </div>
     </div>
 </div>
+</body>
