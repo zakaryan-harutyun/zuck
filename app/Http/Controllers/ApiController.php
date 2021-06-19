@@ -56,7 +56,7 @@ class ApiController extends Controller
           $email = $data['E-mail *']['value'];
           $files = $data['Additional Information']['value']['files'];
 
-          $check_unique = Brief::where('email',$email)->where('type', $type)->first();
+          $check_unique = Brief::where('email',$email)->where('brief_name', $type)->first();
 
           if($check_unique){
               return response()->json(['result' => false, 'message' => 'This email with brief type already used in the system']);
@@ -119,6 +119,7 @@ class ApiController extends Controller
               $message->attach($pdf_path);
           });
       }catch (\Exception $exception){
+          // dd($exception->getMessage());
           return response()->json(['result' => false],'500');
       }
 
