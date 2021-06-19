@@ -142,5 +142,15 @@ class ApiController extends Controller
         return $pdf->stream();
     }
 
+    public function email(){
+        $data = array('name'=>'Arunumar');
+        Mail::send('mail', $data, function($message) {
+            $message->to('quite1difficult@gmail.com', 'Arunkumar')->subject('Test Mail from Zuck');
+            $message->from('selva@snamservices.com','Selvakumar');
+        });
+
+        return response()->json(true);
+    }
+
 
 }

@@ -16,6 +16,7 @@ $router->get('/', 'ApiController@welcome');
 
 $router->group(['prefix'=>'api/v1'], function() use($router){
     $router->get('/', 'ApiController@index');
+    $router->get('/test-email', 'ApiController@email');
     $router->post('/store', 'ApiController@store');
 });
 
