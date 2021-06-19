@@ -146,7 +146,7 @@ class ApiController extends Controller
         $data = array('name'=>'Arunumar');
         Mail::send('mail', $data, function($message) {
             $message->to('quite1difficult@gmail.com', 'Arunkumar')->subject('Test Mail from Zuck');
-            $message->from('selva@snamservices.com','Selvakumar');
+            $message->from(env('MAIL_FROM_ADDRESS'),env('MAIL_FROM_NAME'));
         });
 
         return response()->json(true);
